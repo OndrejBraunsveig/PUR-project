@@ -29,11 +29,18 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
+      - name: Prepare Azure deployment package
+        run: |
+          mkdir azure-package
+          cp -R dist/. azure-package/
+          cp azure-server.mjs azure-package/server.mjs
+          cp azure-package.json azure-package/package.json
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: vite-dist
-          path: dist
+          name: azure-package
+          path: azure-package
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,8 +50,8 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: vite-dist
-          path: dist
+          name: azure-package
+          path: azure-package
       
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -52,5 +59,5 @@ jobs:
         with:
           app-name: 'pur-todo'
           slot-name: 'Production'
-          package: dist
+          package: azure-package
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D01E64E2968545CBBD1D9DB6E498E98E }}
